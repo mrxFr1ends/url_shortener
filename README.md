@@ -1,6 +1,6 @@
-# REST API Shortener
+# Shortener Service
 
-Этот проект - это RESTful API-сервис, созданный с использованием Express и TypeScript для создания сокращенных URL-адресов и перехода по ним.
+Shortener - это HTTP сервис для создания сокращенных URL-адресов и перехода по ним. 
 
 ## Содержание
 
