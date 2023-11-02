@@ -9,7 +9,7 @@ export const redirectByShortUrl = [
     .notEmpty()
     .withMessage("'shortUrl' cannot be empty")
     .matches(/^[A-Za-z0-9-_\.]+$/)
-    .withMessage("punctiation symbols are not allowed except -_. in 'shortUrl'"),
+    .withMessage("'shortUrl' cannot contain punctuation symbols except ._-")
 ];
 
 export const getShortUrl = [
@@ -19,6 +19,8 @@ export const getShortUrl = [
     .trim()
     .notEmpty()
     .withMessage("'originalUrl' cannot be empty")
+    .isLength({ max: 255 })
+    .withMessage("'originalUrl' cannot be longer than 255 characters")
     .isURL()
     .withMessage("'originalUrl' must be a valid URL"),
 
@@ -27,8 +29,10 @@ export const getShortUrl = [
     .trim()
     .notEmpty()
     .withMessage("'customUrl' cannot be empty")
+    .isLength({ max: 255 })
+    .withMessage("'customUrl' cannot be longer than 255 characters")
     .matches(/^[A-Za-z0-9-_\.]+$/)
-    .withMessage("punctiation symbols are not allowed except -_. in 'customUrl'")
+    .withMessage("'customUrl' cannot contain punctuation symbols except ._-")
     .custom(async value => {
       return ShortUrlService.getByShortUrl(value).then(
         url => url && Promise.reject("'customUrl' is already taken")
