@@ -9,7 +9,7 @@ class ShortUrlService {
   }
 
   async create(originalUrl: string, customUrl?: string) {
-    return customUrl
+    return customUrl !== undefined
       ? ShortUrl.create({ originalUrl, shortUrl: customUrl }).then(
           result => result.dataValues
         )
