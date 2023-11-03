@@ -26,6 +26,18 @@ describe("Testing shortUrl", () => {
       expect(response.status).toEqual(302);
       expect(response.header.location).toEqual(originalUrl);
     });
+
+    it("should redirect to originalUrl if orignalUrl of 255 long", async () => {
+      const customUrl = Array(255).fill('1').join('');
+
+      // Create short link
+      await request(app).post("/").send({ originalUrl, customUrl });
+
+      const response = await request(app).get(`/${customUrl}`);
+
+      expect(response.status).toEqual(302);
+      expect(response.header.location).toEqual(originalUrl);
+    });
   });
 
   describe("POST /", () => {
@@ -50,10 +62,12 @@ describe("Testing shortUrl", () => {
         customUrl,
       });
 
-      const expectedShortUrl = `${baseUrl}${customUrl}`;
+      const expectedResponse = {
+        originalUrl,
+        shortUrl: `${baseUrl}${customUrl}`
+      };
       expect(response.status).toEqual(201);
-      expect(response.body.originalUrl).toEqual(originalUrl);
-      expect(response.body.shortUrl).toEqual(expectedShortUrl);
+      expect(response.body).toEqual(expectedResponse);
     });
 
     it("should return error if customUrl already exists in database", async () => {
@@ -94,7 +108,7 @@ describe("Testing shortUrl", () => {
       expect(response.body).toEqual(expectedResponse);
     });
 
-    it("should return error if customUrl is invalid", async () => {
+    it("should return error if customUrl contains invalid characters", async () => {
       const invalidCustomUrl = "myCustom$$$Url";
 
       const response = await request(app)
@@ -105,11 +119,47 @@ describe("Testing shortUrl", () => {
         message: "Validation failed",
         errors: {
           customUrl:
-            "punctiation symbols are not allowed except -_. in 'customUrl'",
+            "'customUrl' cannot contain punctuation symbols except ._-",
         },
       };
       expect(response.status).toEqual(400);
       expect(response.body).toEqual(expectedResponse);
     });
+  });
+
+  it("should save record with provided custom url of 255 characters long", async () => {
+    const req = request(app);
+    const baseUrl = req.get("/").url;
+    const customUrl = Array(255).fill('1').join('');
+
+    const response = await req.post("/").send({
+      originalUrl,
+      customUrl,
+    });
+
+    const expectedResponse = {
+      originalUrl,
+      shortUrl: `${baseUrl}${customUrl}`
+    };
+    expect(response.status).toEqual(201);
+    expect(response.body).toEqual(expectedResponse);
+  });
+
+  it("should return an error if customUrl is longer than 255 characters", async () => {
+    const invalidCustomUrl = Array(256).fill('1').join('');
+
+    const response = await request(app)
+      .post("/")
+      .send({ originalUrl, customUrl: invalidCustomUrl });
+
+    const expectedResponse = {
+      message: "Validation failed",
+      errors: {
+        customUrl:
+          "'customUrl' cannot be longer than 255 characters",
+      },
+    };
+    expect(response.status).toEqual(400);
+    expect(response.body).toEqual(expectedResponse);
   });
 });
